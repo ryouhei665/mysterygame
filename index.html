@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ミステリークイズ：犯人は誰？</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#222;--sub:#666;--line:#ddd6c8;--accent:#8b2e2e;--ok:#2e7d4f;--ng:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1816;--card:#26231f;--text:#eee8dc;--sub:#a59d8d;--line:#3d382f;--accent:#d96a6a;--ok:#5fc287;--ng:#ff8a80}}
+:root[data-theme="dark"]{--bg:#1a1816;--card:#26231f;--text:#eee8dc;--sub:#a59d8d;--line:#3d382f;--accent:#d96a6a;--ok:#5fc287;--ng:#ff8a80}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 4px}
+.sub{color:var(--sub);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.badge{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:0 10px}
+.sus b{display:block}
+.sus{border-top:1px dashed var(--line);padding:8px 0}
+.sus:first-of-type{border-top:0}
+button{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%;margin:6px 0;text-align:left;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent);text-align:center}
+button:disabled{cursor:default;opacity:.85}
+button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+button.ng{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 18%,var(--card))}
+.result{font-weight:700;font-size:18px}
+.good{color:var(--ok)}.bad{color:var(--ng)}
+ul{padding-left:20px;margin:6px 0}
+.hide{display:none}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.st{font-size:12px;white-space:nowrap;color:var(--sub)}
+.st.ok{color:var(--ok)}.st.ng{color:var(--ng)}
+button.small{width:auto;display:inline-block;font-size:13px;padding:6px 12px;text-align:center}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const CASES=[
+{title:"雨の夜の書斎",
+setting:"大雨の夜9時、屋敷の書斎で主人が倒れているのが見つかった。廊下には、庭の赤土がついた大きな靴跡が残っていた。",
+suspects:[
+{name:"妻・美咲",role:"主人の妻",say:"「9時にはずっと台所にいました。家政婦さんも一緒でした。」"},
+{name:"秘書・田辺",role:"主人の秘書",say:"「8時半に郵便ポストまで手紙を出しに行きました。道路は舗装されていますし、すぐ戻りました。」"},
+{name:"庭師・森",role:"庭の手入れ担当",say:"「雨だったので、今日は一日中ずっと屋内の控室にいました。庭には出ていません。」"},
+{name:"友人・石川",role:"主人の旧友",say:"「9時前に着いて、すぐ居間で奥さんと話していました。」"}],
+clues:["玄関に、赤土で汚れた濡れた長靴が1足置いてあった。","その長靴は庭師・森のものだった。"],
+answer:2,
+hint:"「庭に出ていない」と言う人の持ち物を見てみよう。",
+explain:"庭師は「一日中屋内にいた」と言いましたが、玄関には庭の赤土がついた濡れた長靴がありました。雨の中、庭に出た証拠です。廊下の赤土の靴跡とも一致するため、嘘をついている庭師・森が犯人です。"},
+{title:"消えた凶器",
+setting:"真夏の別荘で、主人が後頭部を殴られて死んでいた。しかし、凶器はどこにも見つからない。床には小さな水たまりがあり、部屋は冷房で冷えていた。",
+suspects:[
+{name:"弟・健",role:"被害者の弟",say:"「昨夜は部屋で本を読んでいました。冷凍庫には近づいていません。」"},
+{name:"画家・志保",role:"滞在していた画家",say:"「アトリエで絵を描いていました。」"},
+{name:"料理人・堂本",role:"別荘の料理人",say:"「今朝、冷凍庫の大きな氷のかたまりが1つ減っているのに気づきました。」"},
+{name:"管理人・榊",role:"別荘の管理人",say:"「冷凍庫の鍵を持っているのは私だけです。でも昨夜は一度も開けていません。」"}],
+clues:["冷凍庫は、管理人だけが持つ鍵で施錠されている。","氷のかたまりは1つ減っていた。"],
+answer:3,
+hint:"凶器は「溶けてなくなるもの」かもしれない。氷にアクセスできたのは誰？",
+explain:"凶器は大きな氷のかたまりで、殴ったあとに溶けて水たまりになりました。冷凍庫の鍵は管理人・榊だけが持っているのに、氷が減っていました。「昨夜は開けていない」という証言は嘘で、榊が犯人です。"},
+{title:"知らないはずの毒",
+setting:"山荘で主人が急死した。警察は「死因は調査中」とだけ発表し、毒物の種類や、それが何に入っていたかは、誰にも伝えていない。",
+suspects:[
+{name:"長男・正樹",role:"主人の長男",say:"「父は持病の発作で亡くなったんでしょう。」"},
+{name:"次男・誠",role:"主人の次男",say:"「あの紅茶にヒ素を入れた奴は絶対に許さない！」"},
+{name:"主治医・川村",role:"主人の主治医",say:"「死因はまだ分かりません。調べてみないと。」"},
+{name:"家政婦・花",role:"山荘の家政婦",say:"「私は紅茶をお出ししただけです。何も知りません。」"}],
+clues:["毒がヒ素であること、紅茶に入っていたことは、警察以外には誰も知らない。"],
+answer:1,
+hint:"「知っているはずのないこと」を口にしたのは誰？",
+explain:"毒の種類も、紅茶に入っていたことも、警察しか知らない情報でした。次男・誠はそれを口にしてしまったので、犯人本人しか知り得ない情報を知っていたことになります。"},
+{title:"停電のホテル",
+setting:"嵐の夜、ホテル10階のスイートルームで、宿泊客が殴られて死んでいるのが見つかった。犯行は夜9時15分ごろとみられている。",
+suspects:[
+{name:"支配人・柴田",role:"ホテルの支配人",say:"「停電のあいだは、懐中電灯を持って1階のロビーでお客様に状況を説明していました。」"},
+{name:"ベルボーイ・宮下",role:"荷物係",say:"「9時15分には、地下の荷物室からエレベーターで8階に上がり、お客様の荷物を運んでいました。」"},
+{name:"清掃員・井上",role:"客室清掃担当",say:"「停電中は、10階の廊下の突き当たりにある用具室で、懐中電灯を頼りに片づけをしていました。」"},
+{name:"隣室の客・町田",role:"隣の部屋の宿泊客",say:"「停電したので、隣の部屋でろうそくを灯して本を読んでいました。」"}],
+clues:["ホテルは夜9時ちょうどから10時まで停電し、エレベーターは完全に止まっていた。","停電中、1階ロビーにいた多数の客が、支配人が状況を説明する姿を見ている。"],
+answer:1,
+hint:"停電中に「動かないはずのもの」を使ったと言っている人がいる。",
+explain:"停電中はエレベーターが完全に止まっていたのに、ベルボーイ・宮下は「エレベーターで8階に上がった」と証言しました。アリバイが嘘だと分かるので、犯人は宮下です。支配人は多数の客が姿を見ており、他の2人の証言には矛盾がありません。"},
+{title:"外側に散ったガラス",
+setting:"朝、古書店の奥の部屋で店主が殴られて死んでいた。窓ガラスが割れていて、外から強盗が侵入したように見える。",
+suspects:[
+{name:"店員・小林",role:"古書店の店員",say:"「朝、出勤したときにはもう窓が割れていて、店主が倒れていました。」"},
+{name:"常連客・西村",role:"店の常連客",say:"「閉店の夜7時に帰りました。それ以降は店に来ていません。」"},
+{name:"取引先・大塚",role:"本の仕入れ先",say:"「昨夜は店主と電話で打ち合わせをしただけで、店には行っていません。」"},
+{name:"喫茶店主・早川",role:"向かいの喫茶店の店主",say:"「夜中、店の片づけをしていたら、黒い服の男が外から石を投げて窓を割り、店に入っていくのを見ました。」"}],
+clues:["窓ガラスの破片は、ほぼすべて店の外の路上に散らばっていた。","防犯カメラには、西村が夜7時に店を出る姿が映っていた。","店主の携帯には、大塚との電話の通話記録が残っていた。"],
+answer:3,
+hint:"外から割られたガラスは、どちら側に飛び散るかを考えよう。",
+explain:"外から石を投げて割ったのなら、破片は店の中に散らばるはずです。ところが破片は外の路上に散っており、窓は内側から割られたと分かります。「外から割るのを見た」と証言した喫茶店主・早川の話は嘘で、強盗の仕業に見せかけようとした犯人です。"},
+{title:"夕焼けの写真",
+setting:"12月のある日の夕方6時ごろ、海辺の別荘で主人が殴られて死んでいた。",
+suspects:[
+{name:"甥・翔太",role:"主人の甥",say:"「6時ごろは、町のスーパーで買い物をしていました。レシートもあります。」"},
+{name:"医師・黒川",role:"主人の主治医",say:"「6時は診療所で患者さんを診ていました。」"},
+{name:"友人・岡田",role:"主人の友人",say:"「6時ごろ、海岸を散歩していました。真っ赤な夕焼けがきれいだったので、写真も撮りましたよ。」"},
+{name:"家政婦・節子",role:"別荘の家政婦",say:"「6時には台所で夕食の支度をしていました。」"}],
+clues:["この日の日没は午後4時半で、6時にはすっかり暗くなっていた。","スーパーのレシートには6時5分の時刻が印字されており、別荘からスーパーまでは車で40分かかる。","診療所の診察記録には、6時の患者の名前が残っていた。","6時ごろ別荘に来ていた宅配業者が、台所で調理する家政婦の姿を窓越しに見ていた。"],
+answer:2,
+hint:"12月の6時は、空がどうなっている時間だろう？",
+explain:"12月のこの日、日没は午後4時半で、6時には真っ暗でした。友人・岡田は「6時に夕焼けの写真を撮った」と言いましたが、そんな空は存在しません。アリバイが嘘なので犯人は岡田です。他の3人は、レシート・診察記録・宅配業者の目撃で裏づけられています。"},
+{title:"壊れた携帯電話",
+setting:"夜、マンションの一室で会社員の男性が殴られて死んでいた。床には携帯電話が落ちている。",
+suspects:[
+{name:"同僚・安藤",role:"被害者の同僚",say:"「夜10時に、本人から携帯に電話がありました。『今から帰る』と言っていたので、そのときはまだ生きていたはずです。」"},
+{name:"恋人・理沙",role:"被害者の恋人",say:"「夜8時半に電話で口げんかをして、それきり連絡していません。」"},
+{name:"兄・隆",role:"被害者の兄",say:"「その夜は一度も連絡を取っていません。」"},
+{name:"隣人・村上",role:"隣の部屋の住人",say:"「9時ごろ、壁の向こうで何かが割れるような音がしました。」"}],
+clues:["被害者の携帯は夜9時に床に叩きつけられて壊れ、その後は一切の発着信ができなくなった。","通話履歴の最後は、夜8時半の恋人との通話だった。"],
+answer:0,
+hint:"壊れた携帯から、電話をかけることはできるだろうか？",
+explain:"携帯は9時に壊れ、履歴の最後も8時半の通話でした。10時に本人から電話があったという安藤の証言は成り立ちません。死亡時刻を遅く見せかけようとした安藤が犯人です。"},
+{title:"早すぎた悲しみ",
+setting:"朝6時、屋敷の主人が書斎で亡くなっているのを家政婦が見つけた。家政婦は親族4人に電話をかけたが、「旦那様が倒れました。すぐ来てください」とだけ伝え、亡くなったことは誰にも言っていない。駆けつけた4人は、それぞれこう話した。",
+suspects:[
+{name:"長男・浩一",role:"主人の長男",say:"「倒れたと聞いて、すぐ車を出しました。容体はどうなんですか。」"},
+{name:"次男・達也",role:"主人の次男",say:"「父が亡くなったと聞いて、急いで来ました。」"},
+{name:"長女・由美",role:"主人の長女",say:"「倒れたという電話だったので、救急車は呼んだのかと家政婦さんに聞きました。」"},
+{name:"義弟・秋山",role:"主人の義理の弟",say:"「電話を受けたとき、意識はあるのかと家政婦さんに尋ねました。」"}],
+clues:["家政婦は、4人の誰にも「亡くなった」とは伝えていない。","4人への電話はすべて録音されていて、どれも「倒れた」としか言っていない。"],
+answer:1,
+hint:"電話で伝えられていないことを、知っていた人はいないか？",
+explain:"電話では誰にも「亡くなった」とは伝えていません。それなのに次男・達也は「亡くなったと聞いた」と言いました。主人の死を最初から知っていた人物、つまり犯人は達也です。"},
+];
+const app=document.getElementById("app");
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function load(){try{return JSON.parse(localStorage.getItem("mq-results")||"{}")}catch(e){return {}}}
+function save(r){try{localStorage.setItem("mq-results",JSON.stringify(r))}catch(e){}}
+let results=load(),answered=false;
+function showList(){
+ const done=CASES.filter(c=>c.title in results),right=done.filter(c=>results[c.title]).length;
+ app.innerHTML=`<h1>ミステリークイズ：犯人は誰？</h1>
+ <p class="sub">事件を選んで、証言と手がかりから犯人を当てよう。</p>
+ <div class="card">正解 <b>${right}</b> 問 / 挑戦済み ${done.length} 問 / 全 ${CASES.length} 問</div>
+ ${CASES.map((c,k)=>{const r=results[c.title];const st=r===undefined?["未挑戦",""]:r?["✓ 正解","ok"]:["× 不正解","ng"];
+ return `<button data-k="${k}"><span class="row"><span>第${k+1}問　${esc(c.title)}</span><span class="st ${st[1]}">${st[0]}</span></span></button>`}).join("")}
+ <button class="small" id="reset">記録をリセット</button>`;
+ document.querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{show(+b.dataset.k);window.scrollTo(0,0)});
+ document.getElementById("reset").onclick=()=>{if(confirm("記録を消しますか？")){results={};save(results);showList()}};
+}
+function show(i){
+ answered=false;
+ const c=CASES[i];
+ app.innerHTML=`
+ <button class="small" id="back">← 一覧へ</button>
+ <div><span class="badge">第${i+1}問 / ${CASES.length}</span></div>
+ <h1>${esc(c.title)}</h1>
+ <div class="card">${esc(c.setting)}</div>
+ <div class="card"><b>容疑者の証言</b>${c.suspects.map(s=>`<div class="sus"><b>${esc(s.name)}（${esc(s.role)}）</b>${esc(s.say)}</div>`).join("")}</div>
+ <div class="card"><b>現場の手がかり</b><ul>${c.clues.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+ <button id="hintBtn">ヒントを見る</button>
+ <div id="hint" class="card hide">${esc(c.hint)}</div>
+ <h1>犯人は誰？</h1>
+ <div id="choices">${c.suspects.map((s,k)=>`<button data-k="${k}">${esc(s.name)}</button>`).join("")}</div>
+ <div id="out"></div>`;
+ document.getElementById("back").onclick=()=>{showList();window.scrollTo(0,0)};
+ document.getElementById("hintBtn").onclick=()=>document.getElementById("hint").classList.toggle("hide");
+ document.querySelectorAll("#choices button").forEach(b=>b.onclick=()=>pick(i,+b.dataset.k));
+}
+function pick(i,k){
+ if(answered)return;answered=true;
+ const c=CASES[i],right=k===c.answer;
+ results[c.title]=right;save(results);
+ document.querySelectorAll("#choices button").forEach((b,n)=>{b.disabled=true;if(n===c.answer)b.classList.add("ok");else if(n===k)b.classList.add("ng")});
+ const last=i===CASES.length-1;
+ document.getElementById("out").innerHTML=`
+ <div class="card"><div class="result ${right?"good":"bad"}">${right?"正解！":"不正解…"}</div>
+ <p>犯人は<b>${esc(c.suspects[c.answer].name)}</b>でした。</p><p>${esc(c.explain)}</p></div>
+ ${last?"":'<button class="primary" id="next">次の問題へ</button>'}
+ <button id="toList">一覧に戻る</button>`;
+ if(!last)document.getElementById("next").onclick=()=>{show(i+1);window.scrollTo(0,0)};
+ document.getElementById("toList").onclick=()=>{showList();window.scrollTo(0,0)};
+}
+showList();
+</script>
+</body>
+</html>
