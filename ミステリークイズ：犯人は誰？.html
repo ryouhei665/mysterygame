@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ミステリークイズ：犯人は誰？</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#222;--sub:#666;--line:#ddd6c8;--accent:#8b2e2e;--ok:#2e7d4f;--ng:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1816;--card:#26231f;--text:#eee8dc;--sub:#a59d8d;--line:#3d382f;--accent:#d96a6a;--ok:#5fc287;--ng:#ff8a80}}
+:root[data-theme="dark"]{--bg:#1a1816;--card:#26231f;--text:#eee8dc;--sub:#a59d8d;--line:#3d382f;--accent:#d96a6a;--ok:#5fc287;--ng:#ff8a80}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;line-height:1.7}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 4px}
+.sub{color:var(--sub);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.badge{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:0 10px}
+.sus b{display:block}
+.sus{border-top:1px dashed var(--line);padding:8px 0}
+.sus:first-of-type{border-top:0}
+button{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%;margin:6px 0;text-align:left;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent);text-align:center}
+button:disabled{cursor:default;opacity:.85}
+button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+button.ng{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 18%,var(--card))}
+.result{font-weight:700;font-size:18px}
+.good{color:var(--ok)}.bad{color:var(--ng)}
+ul{padding-left:20px;margin:6px 0}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const CASES=[
+{title:"雨の夜の書斎",
+setting:"大雨の夜9時、屋敷の書斎で主人が倒れているのが見つかった。廊下には、庭の赤土がついた大きな靴跡が残っていた。",
+suspects:[
+{name:"妻・美咲",role:"主人の妻",say:"「9時にはずっと台所にいました。家政婦さんも一緒でした。」"},
+{name:"秘書・田辺",role:"主人の秘書",say:"「8時半に郵便ポストまで手紙を出しに行きました。道路は舗装されていますし、すぐ戻りました。」"},
+{name:"庭師・森",role:"庭の手入れ担当",say:"「雨だったので、今日は一日中ずっと屋内の控室にいました。庭には出ていません。」"},
+{name:"友人・石川",role:"主人の旧友",say:"「9時前に着いて、すぐ居間で奥さんと話していました。」"}],
+clues:["玄関に、赤土で汚れた濡れた長靴が1足置いてあった。","その長靴は庭師・森のものだった。"],
+answer:2,
+hint:"「庭に出ていない」と言う人の持ち物を見てみよう。",
+explain:"庭師は「一日中屋内にいた」と言いましたが、玄関には庭の赤土がついた濡れた長靴がありました。雨の中、庭に出た証拠です。廊下の赤土の靴跡とも一致するため、嘘をついている庭師・森が犯人です。"},
+{title:"消えた凶器",
+setting:"真夏の別荘で、主人が後頭部を殴られて死んでいた。しかし、凶器はどこにも見つからない。床には小さな水たまりがあり、部屋は冷房で冷えていた。",
+suspects:[
+{name:"弟・健",role:"被害者の弟",say:"「昨夜は部屋で本を読んでいました。冷凍庫には近づいていません。」"},
+{name:"画家・志保",role:"滞在していた画家",say:"「アトリエで絵を描いていました。」"},
+{name:"料理人・堂本",role:"別荘の料理人",say:"「今朝、冷凍庫の大きな氷のかたまりが1つ減っているのに気づきました。」"},
+{name:"管理人・榊",role:"別荘の管理人",say:"「冷凍庫の鍵を持っているのは私だけです。でも昨夜は一度も開けていません。」"}],
+clues:["冷凍庫は、管理人だけが持つ鍵で施錠されている。","氷のかたまりは1つ減っていた。"],
+answer:3,
+hint:"凶器は「溶けてなくなるもの」かもしれない。氷にアクセスできたのは誰？",
+explain:"凶器は大きな氷のかたまりで、殴ったあとに溶けて水たまりになりました。冷凍庫の鍵は管理人・榊だけが持っているのに、氷が減っていました。「昨夜は開けていない」という証言は嘘で、榊が犯人です。"},
+{title:"知らないはずの毒",
+setting:"山荘で主人が急死した。警察は「死因は調査中」とだけ発表し、毒物の種類や、それが何に入っていたかは、誰にも伝えていない。",
+suspects:[
+{name:"長男・正樹",role:"主人の長男",say:"「父は持病の発作で亡くなったんでしょう。」"},
+{name:"次男・誠",role:"主人の次男",say:"「あの紅茶にヒ素を入れた奴は絶対に許さない！」"},
+{name:"主治医・川村",role:"主人の主治医",say:"「死因はまだ分かりません。調べてみないと。」"},
+{name:"家政婦・花",role:"山荘の家政婦",say:"「私は紅茶をお出ししただけです。何も知りません。」"}],
+clues:["毒がヒ素であること、紅茶に入っていたことは、警察以外には誰も知らない。"],
+answer:1,
+hint:"「知っているはずのないこと」を口にしたのは誰？",
+explain:"毒の種類も、紅茶に入っていたことも、警察しか知らない情報でした。次男・誠はそれを口にしてしまったので、犯人本人しか知り得ない情報を知っていたことになります。"}
+];
+const app=document.getElementById("app");
+let i=0,score=0,answered=false;
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function start(){i=0;score=0;show()}
+function show(){
+ answered=false;
+ const c=CASES[i];
+ app.innerHTML=`
+ <span class="badge">第${i+1}問 / ${CASES.length}</span>
+ <h1>${esc(c.title)}</h1>
+ <div class="card">${esc(c.setting)}</div>
+ <div class="card"><b>容疑者の証言</b>${c.suspects.map(s=>`<div class="sus"><b>${esc(s.name)}（${esc(s.role)}）</b>${esc(s.say)}</div>`).join("")}</div>
+ <div class="card"><b>現場の手がかり</b><ul>${c.clues.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+ <button id="hintBtn">ヒントを見る</button>
+ <div id="hint" class="card hide">${esc(c.hint)}</div>
+ <h1>犯人は誰？</h1>
+ <div id="choices">${c.suspects.map((s,k)=>`<button data-k="${k}">${esc(s.name)}</button>`).join("")}</div>
+ <div id="out"></div>`;
+ document.getElementById("hintBtn").onclick=()=>document.getElementById("hint").classList.toggle("hide");
+ document.querySelectorAll("#choices button").forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+}
+function pick(k){
+ if(answered)return;answered=true;
+ const c=CASES[i],right=k===c.answer;
+ if(right)score++;
+ document.querySelectorAll("#choices button").forEach((b,n)=>{b.disabled=true;if(n===c.answer)b.classList.add("ok");else if(n===k)b.classList.add("ng")});
+ const last=i===CASES.length-1;
+ document.getElementById("out").innerHTML=`
+ <div class="card"><div class="result ${right?"good":"bad"}">${right?"正解！":"不正解…"}</div>
+ <p>犯人は<b>${esc(c.suspects[c.answer].name)}</b>でした。</p><p>${esc(c.explain)}</p></div>
+ <button class="primary" id="next">${last?"結果を見る":"次の問題へ"}</button>`;
+ document.getElementById("next").onclick=()=>{if(last)finish();else{i++;show();window.scrollTo(0,0)}};
+}
+function finish(){
+ const msg=score===CASES.length?"名探偵です！":score>=2?"なかなかの推理力！":"次はきっと解けます。";
+ app.innerHTML=`<h1>結果</h1><div class="card"><div class="result">${score} / ${CASES.length} 問正解</div><p>${msg}</p></div>
+ <button class="primary" id="again">もう一度遊ぶ</button>`;
+ document.getElementById("again").onclick=()=>{start();window.scrollTo(0,0)};
+ window.scrollTo(0,0);
+}
+start();
+</script>
+</body>
+</html>
